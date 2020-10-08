@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Some code generating a dataset for LSTM training
+"""Some code generating a PyTorch dataset for LSTM training
+https://pytorch.org/tutorials/recipes/recipes/custom_dataset_transforms_loader.html
 """
 from __future__ import print_function, division
 import os
@@ -60,41 +61,6 @@ def random_phases(batch_size: int, phase: List = None) -> List:
     return phases
 
 
-def tensorflow_sine_wave_data(n_half_periods: int, npoints: int, batch_size: int, phases: List = None):
-    """ A sine wave dataset and labels
-    :param n_half_periods: number of half periods in order to imitate the different phase at the end;
-    :param npoints: number of points in sequence;
-    :param batch_size: batch size after which the weights will be updated;
-    :param phase: list of 'from' 'until' phases in radian, if None (default) random between 1 and 2pi;
-    :return: Dataset
-    """
-
-    # phases for the individual sequences in the batch
-    phases_for_batch = random_phases(batch_size, phases)
-
-    data_stack  = []
-    label_stack = []
-    for phase in phases_for_batch:
-        layer = []
-        duration = n_half_periods * pi
-        t = np.arange(start=phase,
-                      stop=phase + duration,
-                      step=duration / npoints,
-                      dtype=np.float)
-        x1 = np.sin(t)
-        next = sin(phase+duration)
-        phase_list = [phase for i in range(npoints)]
-        x2 = np.array(phase_list, dtype=np.float)
-        layer.append(x1)
-        layer.append(x2)
-        # rolled_t = np.roll(a=t, shift=-1, axis=0)
-        data_stack.append(layer)
-        label_stack.append(next)
-    examples = np.asarray(data_stack)
-    labels = np.asarray(label_stack)
-    return examples, labels
-
-
 def pytorch_sine_wave_data(n_half_periods: int, npoints: int, batch_size: int, phases: List = None):
     """ A sine wave dataset and labels
     :param n_half_periods: number of half periods in order to imitate the different phase at the end;
@@ -139,33 +105,19 @@ if __name__ == '__main__':
     batch_size = 8
     phases_range = [0, pi/2]
 
-    if library.startswith('TensorFlow'):
-        train_examples, train_labels = tensorflow_sine_wave_data(n_half_periods=number_of_half_periods,
-                                                                 npoints=number_of_time_points,
-                                                                 batch_size=batch_size,
-                                                                 phases=phases_range)
-        train_dataset = tf.data.Dataset.from_tensor_slices((train_examples, train_labels))
+    data = pytorch_sine_wave_data(n_half_periods=number_of_half_periods,
+                                  npoints=number_of_time_points,
+                                  batch_size=batch_size,
+                                  phases=phases_range)
 
-        tf.data.experimental.save(train_dataset, dataset_path)
-        # spec = train_dataset.element_spec
-        # new_dataset = tf.data.experimental.load(dataset_path,
-        #                                         element_spec=spec)
-        # for elem in new_dataset:
-        #     print(elem)
+    data_loader = torch.utils.data.DataLoader(dataset=data,
+                                              batch_size=8,
+                                              shuffle=False)
 
-        test_examples, test_labels = tensorflow_sine_wave_data(n_half_periods=number_of_half_periods,
-                                                                 npoints=number_of_time_points,
-                                                                 batch_size=batch_size,
-                                                                 phases=phases_range)
-        test_dataset = tf.data.Dataset.from_tensor_slices((test_examples, test_labels))
+    for dat in data_loader:
+        print("Data: ", dat)
+        break
 
-    elif library.startswith('PyTorch'):
-        train_examples, train_labels = pytorch_sine_wave_data(n_half_periods=number_of_half_periods,
-                                                                 npoints=number_of_time_points,
-                                                                 batch_size=batch_size,
-                                                                 phases=phases_range)
-    else:
-        print('I do not know the library that you are talking about! ')
     print('\ndone')
 
 '''
