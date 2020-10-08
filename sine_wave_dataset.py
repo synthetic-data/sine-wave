@@ -26,20 +26,22 @@ def tensorflow_sine_wave_data(n_half_periods: int, npoints: int, batch_size: int
     # phases for the individual sequences in the batch
     phases_for_batch = random_phases(batch_size, phases)
 
-    layer = []
+    stack = []
     for phase in phases_for_batch:
+        layer = []
         duration = n_half_periods * pi
         t = np.arange(start=phase,
-                         stop=phase + duration,
-                         step=duration / (npoints - 1),
-                         dtype=np.float)
+                      stop=phase + duration,
+                      step=duration / (npoints),
+                      dtype=np.float)
         x1 = np.sin(t)
-        x2 = t
-        if layer:
-            pass
-        else:
-            layer = t
-        print('ok')
+        phase_list = [phase for i in range(npoints)]
+        x2 = np.array(phase_list, dtype=np.float)
+        layer.append(x1)
+        layer.append(x2)
+        rolled_t = np.roll(a=t, shift=-1, axis=0)
+
+        stack.append(layer)
         # rold = np.roll(a=data, shift=-1, axis=0)
     # seri = Series(data)
     # print(series)
