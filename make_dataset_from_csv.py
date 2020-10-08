@@ -4,6 +4,7 @@
 import tensorflow as tf
 
 if __name__ == '__main__':
+
     file_pattern = '/media/alxfed/data/datasets/*.csv'
     batch_size = 8
     dataset = tf.data.experimental.make_csv_dataset(
